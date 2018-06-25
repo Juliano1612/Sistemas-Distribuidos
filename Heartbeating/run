@@ -1,0 +1,2 @@
+python simulador.py numNosRede turnosPExcluir
+python node.py ID qtddSomaPorTurno
