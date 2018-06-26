@@ -25,6 +25,7 @@ TIME = 0
 ONLINE = True
 
 HEARTBEAT_TABLE = []
+FAIL_NODES = []
 
 serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 serversocket.bind((HOST, PORT))
@@ -45,10 +46,18 @@ def atualizeLastUpdateTime():
 
 def verifyFailNodes():
     global HEARTBEAT_TABLE, ERASE_AFTER
+    REMOVE = []
     for i in range(0, len(HEARTBEAT_TABLE)):
         if HEARTBEAT_TABLE[i]['ATUALIZADO'] > 2*ERASE_AFTER:
-            print bcolors.WARNING, 'NODE ', HEARTBEAT_TABLE[i]['ID'], ' FAILED', bcolors.ENDC
-            HEARTBEAT_TABLE.pop(i)
+            REMOVE.append(i)
+
+    for i in range(0, len(REMOVE)):
+        print bcolors.WARNING, 'NODE ', HEARTBEAT_TABLE[REMOVE[i]]['ID'], ' FAILED', bcolors.ENDC        
+        FAIL_NODES.append(HEARTBEAT_TABLE[REMOVE[i]])
+    HEARTBEAT_TABLE = [v for i, v in enumerate(HEARTBEAT_TABLE) if i not in REMOVE]
+
+    print "Len htbt ", len(HEARTBEAT_TABLE), " len fail ", len(FAIL_NODES)
+
 
 def gossip():
     global HEARTBEAT_TABLE, ID, HOST, VIZINHOS
@@ -56,22 +65,29 @@ def gossip():
     for i in range(0,len(HEARTBEAT_TABLE)):
         if HEARTBEAT_TABLE[i]['ATUALIZADO'] == 0:
             AUX_TABLE.append(HEARTBEAT_TABLE[i])
-    if VIZINHOS > 1:
+    if VIZINHOS > 1 and len(FAIL_NODES) < VIZINHOS-1:
         destination = object()
-        if len(HEARTBEAT_TABLE) > 1:
-            destination = random.choice(HEARTBEAT_TABLE)
-            while destination['ID'] == ID:
-                destination = random.choice(HEARTBEAT_TABLE)
-        else:
-            index = randint(0, VIZINHOS-1)
+        # if len(HEARTBEAT_TABLE) > 1:
+        #     destination = random.choice(HEARTBEAT_TABLE)
+        #     while destination['ID'] == ID:
+        #         destination = random.choice(HEARTBEAT_TABLE)
+        # else:
+        index = randint(0, VIZINHOS-1)
+        while True:
             while index == ID:
                 index = randint(0, VIZINHOS-1)
-            destination = {'ID':index, 'ENDERECO': OFFSET+index}
+            try:
+                index = map(itemgetter('ID'), FAIL_NODES).index(message[i]['ID'])
+                break
+            except:
+                index = randint(0, VIZINHOS-1)
+                break
+        destination = {'ID':index, 'ENDERECO': OFFSET+index}
         clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             clientsocket.connect((HOST, destination['ENDERECO']))
             clientsocket.send(json.dumps(AUX_TABLE))
-            print bcolors.OKGREEN, "HEARTBEAT TABLE SENDED TO NODE ", destination['ID'] ,bcolors.ENDC
+            print bcolors.OKGREEN, "HEARTBEAT TABLE SENT TO NODE ", destination['ID'] ,bcolors.ENDC
         except:
             print bcolors.FAIL, "ERROR: CONNECTION NOT ESTABLISHED WITH ", destination['ID'], bcolors.ENDC
 
@@ -88,6 +104,11 @@ def receiveGossip(message):
                 HEARTBEAT_TABLE.append(message[i])
                 HEARTBEAT_TABLE[-1]['ATUALIZADO'] = 0
                 HEARTBEAT_TABLE[-1]['TIMESTAMP_LOCAL'] = TIME
+            try:
+                index = map(itemgetter('ID'), FAIL_NODES).index(message[i]['ID'])
+                FAIL_NODES.pop(index)
+            except:
+                pass
 
 def showTable():
     global HEARTBEAT_TABLE
@@ -108,7 +129,7 @@ showTable()
 
 while True:
     connection, address = serversocket.accept()
-    buf = connection.recv(256)
+    buf = connection.recv(4096)
     if len(buf) > 0:
         decodedMessage = json.loads(buf)
         if decodedMessage == 'NEXT' and ONLINE:

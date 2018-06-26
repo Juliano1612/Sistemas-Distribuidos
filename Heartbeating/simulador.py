@@ -26,18 +26,9 @@ for i in range(0, int(sys.argv[1])):
     try:
         clientsocket.connect((HOST, NODE_LIST[i]))
         clientsocket.send(json.dumps(sys.argv[2] +  ' ' + sys.argv[1]))
-        print bcolors.OKGREEN, "CONFIGURATION SENDED TO ", i ,bcolors.ENDC
+        print bcolors.OKGREEN, "CONFIGURATION SENT TO ", i ,bcolors.ENDC
     except:
-        print bcolors.FAIL, "ERROR: CONNECTION NOT STABLISHED WITH ", i, bcolors.ENDC
-
-def sendHeartbeat(id):
-    clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        clientsocket.connect((HOST, PORT))
-        clientsocket.send(json.dumps('message'))
-        print bcolors.OKGREEN, "HEARTBEAT SENDED TO NODE ", id ,bcolors.ENDC
-    except:
-        print bcolors.FAIL, "ERROR: CONNECTION NOT STABLISHED WITH ", id, bcolors.ENDC
+        print bcolors.FAIL, "ERROR: CONNECTION NOT ESTABLISHED WITH ", i, bcolors.ENDC
 
 serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 serversocket.bind((HOST, PORT))
@@ -52,9 +43,9 @@ while True:
             try:
                 clientsocket.connect((HOST, NODE_LIST[i]))
                 clientsocket.send(json.dumps('NEXT'))
-                print bcolors.OKGREEN, "NEXT INSTANT SENDED TO NODE ", i ,bcolors.ENDC
+                print bcolors.OKGREEN, "NEXT INSTANT SENT TO NODE ", i ,bcolors.ENDC
             except:
-                print bcolors.FAIL, "ERROR: CONNECTION NOT STABLISHED WITH ", i, bcolors.ENDC
+                print bcolors.FAIL, "ERROR: CONNECTION NOT ESTABLISHED WITH ", i, bcolors.ENDC
     else: #Enviar mensagem de ativacao/desativacao
         clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
@@ -62,5 +53,5 @@ while True:
             clientsocket.send(json.dumps('TOGGLE'))
             print bcolors.OKGREEN, "TOGGLE TO NODE ", option ,bcolors.ENDC
         except:
-            print bcolors.FAIL, "ERROR: CONNECTION NOT STABLISHED WITH ", i, bcolors.ENDC
+            print bcolors.FAIL, "ERROR: CONNECTION NOT ESTABLISHED WITH ", i, bcolors.ENDC
     TIME += 1
