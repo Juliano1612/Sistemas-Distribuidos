@@ -58,29 +58,9 @@ while True:
     else: #Enviar mensagem de ativacao/desativacao
         clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            clientsocket.connect((HOST, NODE_LIST[i]))
+            clientsocket.connect((HOST, NODE_LIST[int(option)]))
             clientsocket.send(json.dumps('TOGGLE'))
-            print bcolors.OKGREEN, "TOGGLE TO NODE ", i ,bcolors.ENDC
+            print bcolors.OKGREEN, "TOGGLE TO NODE ", option ,bcolors.ENDC
         except:
             print bcolors.FAIL, "ERROR: CONNECTION NOT STABLISHED WITH ", i, bcolors.ENDC
     TIME += 1
-
-'''
-node = raw_input("Digite o id do no para iniciar o Heartbeating...")
-if node != '': #Nao digitou enter... nao e no inicial
-    sendHeartbeat(node)
-
-while True:
-    connection, address = serversocket.accept()
-    buf = connection.recv(256)
-    if len(buf) > 0:
-        print 'RECEBI MENSAGEM'
-        decodedMessage = json.loads(buf)
-        if decodedMessage['NAME'].startswith('P'):
-            publicationReceived(connection, decodedMessage)
-        elif decodedMessage['NAME'].startswith('I'):
-            messageReceived(connection, decodedMessage)
-        elif decodedMessage['NAME'].startswith('A'):
-            subscriptionReceived(connection, decodedMessage)'''
-
-
