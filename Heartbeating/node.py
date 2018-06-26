@@ -56,9 +56,6 @@ def verifyFailNodes():
         FAIL_NODES.append(HEARTBEAT_TABLE[REMOVE[i]])
     HEARTBEAT_TABLE = [v for i, v in enumerate(HEARTBEAT_TABLE) if i not in REMOVE]
 
-    print "Len htbt ", len(HEARTBEAT_TABLE), " len fail ", len(FAIL_NODES)
-
-
 def gossip():
     global HEARTBEAT_TABLE, ID, HOST, VIZINHOS
     AUX_TABLE = []
